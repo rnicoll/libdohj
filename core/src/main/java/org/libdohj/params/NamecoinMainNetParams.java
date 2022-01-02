@@ -18,7 +18,6 @@ package org.libdohj.params;
 
 import org.bitcoinj.core.Block;
 import org.bitcoinj.core.Sha256Hash;
-import org.bouncycastle.util.encoders.Hex;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -46,6 +45,7 @@ public class NamecoinMainNetParams extends AbstractNamecoinParams {
         genesisBlock.setNonce(2719916434L);
         id = ID_NMC_MAINNET;
         subsidyDecreaseBlockCount = 210000;
+
         spendableCoinbaseDepth = 100;
         auxpowStartHeight = 19200;
 

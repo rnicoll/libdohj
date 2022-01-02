@@ -17,18 +17,14 @@
 
 package org.libdohj.params;
 
-import org.bitcoinj.core.Utils;
+import org.bitcoinj.core.*;
 import org.bouncycastle.util.encoders.Hex;
 
 import static com.google.common.base.Preconditions.checkState;
 import java.io.ByteArrayOutputStream;
-import org.bitcoinj.core.AltcoinBlock;
-import org.bitcoinj.core.Block;
+
 import static org.bitcoinj.core.Coin.COIN;
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.TransactionInput;
-import org.bitcoinj.core.TransactionOutput;
+
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.script.Script;
 import org.bitcoinj.script.ScriptOpCodes;
@@ -42,11 +38,15 @@ public class LitecoinMainNetParams extends AbstractLitecoinParams {
     public static final int MAINNET_MAJORITY_WINDOW = MainNetParams.MAINNET_MAJORITY_WINDOW;
     public static final int MAINNET_MAJORITY_REJECT_BLOCK_OUTDATED = MainNetParams.MAINNET_MAJORITY_REJECT_BLOCK_OUTDATED;
     public static final int MAINNET_MAJORITY_ENFORCE_BLOCK_UPGRADE = MainNetParams.MAINNET_MAJORITY_ENFORCE_BLOCK_UPGRADE;
+    private static final Sha256Hash GENESIS_HASH = Sha256Hash.wrap("12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2");
+    private static final long GENESIS_TIME = 1317972665L;
+    private static final long GENESIS_NONCE = 2084524493;
+    private static final long STANDARD_MAX_DIFFICULTY_TARGET = 0x1e0ffff0L;
+
 
     public LitecoinMainNetParams() {
         super();
         id = ID_LITE_MAINNET;
-        // Genesis hash is 12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2
         packetMagic = 0xfbc0b6db;
 
         maxTarget = Utils.decodeCompactBits(0x1e0fffffL);
@@ -56,7 +56,7 @@ public class LitecoinMainNetParams extends AbstractLitecoinParams {
         dumpedPrivateKeyHeader = 176;
         segwitAddressHrp = "ltc";
 
-        this.genesisBlock = createGenesis(this);
+        genesisBlock = createGenesis(this);
         spendableCoinbaseDepth = 100;
         subsidyDecreaseBlockCount = 840000;
 
@@ -101,6 +101,21 @@ public class LitecoinMainNetParams extends AbstractLitecoinParams {
         return genesisBlock;
     }
 
+    @Override
+    public Block getGenesisBlock() {
+        synchronized (GENESIS_HASH) {
+            if (genesisBlock == null) {
+                genesisBlock = createGenesis(this);
+                genesisBlock.setDifficultyTarget(STANDARD_MAX_DIFFICULTY_TARGET);
+                genesisBlock.setTime(GENESIS_TIME);
+                genesisBlock.setNonce(GENESIS_NONCE);
+                checkState(genesisBlock.getHash().equals(GENESIS_HASH), "Invalid genesis hash");
+            }
+        }
+        return genesisBlock;
+    }
+
+
     private static LitecoinMainNetParams instance;
     public static synchronized LitecoinMainNetParams get() {
         if (instance == null) {
@@ -112,11 +127,6 @@ public class LitecoinMainNetParams extends AbstractLitecoinParams {
     @Override
     public String getPaymentProtocolId() {
         return ID_LITE_MAINNET;
-    }
-
-    @Override
-    public Block getGenesisBlock() {
-        return genesisBlock;
     }
 
     @Override
